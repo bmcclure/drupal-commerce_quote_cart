@@ -6,7 +6,6 @@ use Drupal\Core\Form\FormStateInterface;
  */
 function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   if (strpos($form_id, 'commerce_order_item_default_add_to_cart_') === 0) {
-    dpm($form_state);
     $variationId = $form_state->getStorage()['selected_variation'];
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
