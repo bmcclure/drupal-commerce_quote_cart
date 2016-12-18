@@ -1,4 +1,6 @@
 <?php
+use Drupal\commerce_product\Entity\ProductInterface;
+use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Link;
@@ -63,6 +65,46 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
     '@entity' => $variation->label(),
     '@cart-link' => Link::createFromRoute($this->t('your cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
   ]));
+}
+
+/**
+ * Implements hook_preprocess_block().
+ */
+function commerce_mixed_quote_cart_preprocess_block(&$variables) {
+  if ($variables['elements']['#id'] == 'product_variations') {
+    $variables['label'] = commerce_mixed_quote_cart_block_label($variables);
+  }
+}
+
+function commerce_mixed_quote_cart_block_label($variables) {
+  $label = $variables['label'];
+
+  $product = $variables['content']['content']['#commerce_product'];
+
+  if ($product instanceof \Drupal\commerce_product\Entity\ProductInterface) {
+    if (commerce_mixed_quote_cart_product_is_purchasable($product)) {
+      $label = 'Add to Cart';
+    }
+  }
+
+  return $label;
+}
+
+function commerce_mixed_quote_cart_product_is_purchasable(ProductInterface $product) {
+  $purchasableField = 'field_available_for_purchase';
+  $variations = $product->getVariations();
+
+  $purchasable = FALSE;
+
+  foreach ($variations as $variation) {
+    if (!$variation->hasField($purchasableField) || $variation->get($purchasableField)->value) {
+      $purchasable = TRUE;
+
+      break;
+    }
+  }
+
+  return $purchasable;
 }
 
 function commerce_mixed_quote_cart_preprocess_field(&$variables) {
