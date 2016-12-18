@@ -1,5 +1,7 @@
 <?php
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
 
 /**
  * Implements hook_form_alter().
@@ -61,4 +63,19 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
     '@entity' => $variation->label(),
     '@cart-link' => Link::createFromRoute($this->t('your cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
   ]));
+}
+
+function commerce_mixed_quote_cart_preprocess_field(&$variables) {
+  if ($variables['element']['#field_name'] == 'price') {
+    /** @var FieldableEntityInterface $entity */
+    $entity = $variables['element']['#object'];
+
+    $purchasable = 'field_available_for_purchase';
+
+    if ($entity->hasField($purchasable) && !$entity->get($purchasable)->value) {
+      if (isset($variables['items'][0])) {
+        $variables['items'][0]['content']['#markup'] = '';
+      }
+    }
+  }
 }
