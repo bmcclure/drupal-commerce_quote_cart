@@ -57,8 +57,10 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
   $order_item = $addToCartForm->getEntity();
   $order_item->set('field_quote', ['value' => "1"]);
 
+  $addToCartForm->submitForm($form, $form_state);
+
   /** @var \Drupal\commerce\PurchasableEntityInterface $purchased_entity */
-  $purchased_entity = $order_item->getPurchasedEntity();
+  /*$purchased_entity = $order_item->getPurchasedEntity();
 
   $order_type = \Drupal::service('commerce_order.chain_order_type_resolver')->resolve($order_item);
 
@@ -75,7 +77,7 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
   drupal_set_message(t('@entity added to @cart-link.', [
     '@entity' => $purchased_entity->label(),
     '@cart-link' => Link::createFromRoute(t('your quote cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
-  ]));
+  ]));*/
 }
 
 /**

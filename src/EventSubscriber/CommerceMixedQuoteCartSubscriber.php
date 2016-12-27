@@ -8,6 +8,8 @@ use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\commerce_order\Event\OrderItemEvent;
 use Drupal\commerce_price\Price;
+use Drupal\commerce_product\Event\ProductEvents;
+use Drupal\commerce_product\Event\ProductVariationEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
@@ -25,8 +27,14 @@ class CommerceMixedQuoteCartSubscriber implements EventSubscriberInterface {
     $events[CartEvents::ORDER_ITEM_COMPARISON_FIELDS][] = ['onOrderItemComparisonFields'];
     $events[OrderEvents::ORDER_ITEM_PRESAVE][] = ['onOrderItemPresave'];
     $events[OrderEvents::ORDER_ITEM_CREATE][] = ['onOrderItemCreate'];
+    $events[ProductEvents::PRODUCT_VARIATION_AJAX_CHANGE][] = ['onProductVariationAjaxChange'];
 
     return $events;
+  }
+
+  public function onProductVariationAjaxChange(ProductVariationEvent $event) {
+    // TODO: Add AJAX event to reload main product variation
+    // (Currently only replaces Add to Cart block info)
   }
 
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {
