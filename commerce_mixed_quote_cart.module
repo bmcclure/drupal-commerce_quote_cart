@@ -1,4 +1,6 @@
 <?php
+use Drupal\commerce\PurchasableEntityInterface;
+use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
@@ -31,39 +33,48 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
   }
 }
 
-function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface $form_state) {
-  $variationId = $form_state->getStorage()['selected_variation'];
-
-  /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
-  $variation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load($variationId);
-
-  // TODO: Figure out
-  return;
-
-  $data = [
-    'purchased_entity' => $variation,
-    'title' => $variation->label(),
-    'quantity' => 1,
-    'unit_price' => 0.00,
-    'total' => '0.00',
-  ];
-  $order_item = \Drupal::entityTypeManager()->getStorage('commerce_order_item')->create($data);
-  $order_item->save();
-
-  return;
-
-  $order_type = $this->orderTypeResolver->resolve($order_item);
-
-  $store = $this->selectStore($variation);
-  $cart = $this->cartProvider->getCart($order_type, $store);
-  if (!$cart) {
-    $cart = $this->cartProvider->createCart($order_type, $store);
+function commerce_mixed_quote_cart_get_store(PurchasableEntityInterface $entity) {
+  $stores = $entity->getStores();
+  if (count($stores) === 1) {
+    $store = reset($stores);
   }
-  $this->cartManager->addOrderItem($cart, $order_item, $form_state->get(['settings', 'combine']));
+  else {
+    $store = \Drupal::service('commerce_store.store_context')->getStore();
+    if (!in_array($store, $stores)) {
+      // Indicates that the site listings are not filtered properly.
+      throw new \Exception("The given entity can't be purchased from the current store.");
+    }
+  }
 
-  drupal_set_message($this->t('@entity added to @cart-link.', [
-    '@entity' => $variation->label(),
-    '@cart-link' => Link::createFromRoute($this->t('your cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
+  return $store;
+}
+
+function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\commerce_cart\Form\AddToCartForm $addToCartForm */
+  $addToCartForm = $form_state->getBuildInfo()['callback_object'];
+
+  /** @var \Drupal\commerce_order\Entity\OrderItemInterface $order_item */
+  $order_item = $addToCartForm->getEntity();
+  $order_item->set('field_quote', ['value' => "1"]);
+
+  /** @var \Drupal\commerce\PurchasableEntityInterface $purchased_entity */
+  $purchased_entity = $order_item->getPurchasedEntity();
+
+  $order_type = \Drupal::service('commerce_order.chain_order_type_resolver')->resolve($order_item);
+
+  $cartProvider = \Drupal::service('commerce_cart.cart_provider');
+  $cartManager = \Drupal::service('commerce_cart.cart_manager');
+
+  $store = commerce_mixed_quote_cart_get_store($purchased_entity);
+  $cart = $cartProvider->getCart($order_type, $store);
+  if (!$cart) {
+    $cart = $cartProvider->createCart($order_type, $store);
+  }
+  $cartManager->addOrderItem($cart, $order_item, $form_state->get(['settings', 'combine']));
+
+  drupal_set_message(t('@entity added to @cart-link.', [
+    '@entity' => $purchased_entity->label(),
+    '@cart-link' => Link::createFromRoute(t('your quote cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
   ]));
 }
 
