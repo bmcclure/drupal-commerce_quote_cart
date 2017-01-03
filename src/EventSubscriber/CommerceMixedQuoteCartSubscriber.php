@@ -9,6 +9,7 @@ use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\commerce_order\Event\OrderItemEvent;
 use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Event\ProductEvents;
+use Drupal\commerce_product\Event\ProductVariationAjaxChangeEvent;
 use Drupal\commerce_product\Event\ProductVariationEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
@@ -32,7 +33,7 @@ class CommerceMixedQuoteCartSubscriber implements EventSubscriberInterface {
     return $events;
   }
 
-  public function onProductVariationAjaxChange(ProductVariationEvent $event) {
+  public function onProductVariationAjaxChange(ProductVariationAjaxChangeEvent $event) {
     // TODO: Add AJAX event to reload main product variation
     // (Currently only replaces Add to Cart block info)
   }
