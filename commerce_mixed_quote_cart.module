@@ -1,5 +1,6 @@
 <?php
 use Drupal\commerce\PurchasableEntityInterface;
+use Drupal\commerce_mixed_quote_cart\QuoteCartHelper;
 use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Block\BlockPluginInterface;
@@ -11,13 +12,49 @@ use Drupal\Core\Link;
  * Implements hook_form_alter().
  */
 function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if (strpos($form_id, 'views_form_commerce_cart_form_') === 0) {
+    /** @var \Drupal\views\ViewExecutable $view */
+    $view = $form_state->getBuildInfo()['args'][0];
+
+    foreach ($view->result as $resultRow) {
+      if (!isset($resultRow->_entity)) {
+        continue;
+      }
+
+      /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+      $order = $resultRow->_entity;
+
+      if (QuoteCartHelper::isMixedCart($order)) {
+        $form['actions']['convert'] = [
+          '#type' => 'submit',
+          '#value' => t('Convert to Quote'),
+          '#submit' => ['commerce_mixed_quote_cart_submit_convert'],
+          '#button_type' => 'primary',
+          '#weight' => -10,
+        ];
+      }
+    }
+  }
+
+  if ($form_id == 'multistep_default') {
+    if (isset($form['actions']['next'])) {
+
+      /** @var \Drupal\Core\StringTranslation\TranslatableMarkup $nextValue */
+      $nextValue = $form['actions']['next']['#value'];
+
+      if (strtolower($nextValue->getUntranslatedString()) == 'pay and complete purchase') {
+        $form['actions']['next']['#value'] = t('Complete order');
+      }
+    }
+  }
+
   if (strpos($form_id, 'commerce_order_item_default_add_to_cart_') === 0) {
     $variationId = $form_state->getStorage()['selected_variation'];
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
     $variation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load($variationId);
 
-    $availableForQuote = $variation->get('field_available_for_quote')->value;
+    $availableForQuote = $variation->get('field_available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
     $availableForPurchase = $variation->get('field_available_for_purchase')->value;
 
     $form['actions']['submit']['#access'] = (bool) $availableForPurchase;
@@ -49,6 +86,22 @@ function commerce_mixed_quote_cart_get_store(PurchasableEntityInterface $entity)
   return $store;
 }
 
+function commerce_mixed_quote_cart_submit_convert(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\views\ViewExecutable $view */
+  $view = $form_state->getBuildInfo()['args'][0];
+
+  foreach ($view->result as $resultRow) {
+    if (!isset($resultRow->_entity)) {
+      continue;
+    }
+
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    $order = $resultRow->_entity;
+
+    QuoteCartHelper::convertToQuote($order);
+  }
+}
+
 function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface $form_state) {
   /** @var \Drupal\commerce_cart\Form\AddToCartForm $addToCartForm */
   $addToCartForm = $form_state->getBuildInfo()['callback_object'];
@@ -58,26 +111,6 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
   $order_item->set('field_quote', ['value' => "1"]);
 
   $addToCartForm->submitForm($form, $form_state);
-
-  /** @var \Drupal\commerce\PurchasableEntityInterface $purchased_entity */
-  /*$purchased_entity = $order_item->getPurchasedEntity();
-
-  $order_type = \Drupal::service('commerce_order.chain_order_type_resolver')->resolve($order_item);
-
-  $cartProvider = \Drupal::service('commerce_cart.cart_provider');
-  $cartManager = \Drupal::service('commerce_cart.cart_manager');
-
-  $store = commerce_mixed_quote_cart_get_store($purchased_entity);
-  $cart = $cartProvider->getCart($order_type, $store);
-  if (!$cart) {
-    $cart = $cartProvider->createCart($order_type, $store);
-  }
-  $cartManager->addOrderItem($cart, $order_item, $form_state->get(['settings', 'combine']));
-
-  drupal_set_message(t('@entity added to @cart-link.', [
-    '@entity' => $purchased_entity->label(),
-    '@cart-link' => Link::createFromRoute(t('your quote cart', [], ['context' => 'cart link']), 'commerce_cart.page')->toString(),
-  ]));*/
 }
 
 /**
@@ -130,6 +163,20 @@ function commerce_mixed_quote_cart_preprocess_field(&$variables) {
     if ($entity->hasField($purchasable) && !$entity->get($purchasable)->value) {
       if (isset($variables['items'][0])) {
         $variables['items'][0]['content']['#markup'] = '';
+      }
+    }
+  }
+}
+
+function commerce_mixed_quote_cart_entity_storage_load(array $entities, $entity_type) {
+  if ($entity_type == 'commerce_order') {
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    foreach ($entities as $order) {
+      $checkoutFlow = $order->get('checkout_flow');
+      if ($order->getTotalPrice()->isZero()) {
+        $checkoutFlow->set(0, ['target_id' => 'quote']);
+      } else {
+        $checkoutFlow->set(0, ['target_id' => 'default']);
       }
     }
   }
