@@ -49,16 +49,11 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
   }
 
   if (strpos($form_id, 'commerce_order_item_default_add_to_cart_') === 0) {
-    $storage = $form_state->getStorage();
+    $variation = commerce_mixed_quote_cart_get_current_variation($form_state->getStorage());
 
-    if (empty($storage['selected_variation'])) {
+    if (empty($variation)) {
       return;
     }
-
-    $variationId = $form_state->getStorage()['selected_variation'];
-
-    /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
-    $variation = \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load($variationId);
 
     $availableForQuote = $variation->get('field_available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
     $availableForPurchase = $variation->get('field_available_for_purchase')->value;
@@ -74,6 +69,20 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
       '#access' => (bool) $availableForQuote
     ];
   }
+}
+
+function commerce_mixed_quote_cart_get_current_variation(array $storage) {
+  if (isset($storage['selected_variation'])) {
+    $variationId = $storage['selected_variation'];
+
+    /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
+    return \Drupal::entityTypeManager()->getStorage('commerce_product_variation')->load($variationId);
+  }
+
+  /** @var ProductInterface $product */
+  $product = $storage['product'];
+
+  return $product->getDefaultVariation();
 }
 
 function commerce_mixed_quote_cart_get_store(PurchasableEntityInterface $entity) {
