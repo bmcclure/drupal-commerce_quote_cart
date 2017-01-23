@@ -49,6 +49,12 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
   }
 
   if (strpos($form_id, 'commerce_order_item_default_add_to_cart_') === 0) {
+    $storage = $form_state->getStorage();
+
+    if (empty($storage['selected_variation'])) {
+      return;
+    }
+
     $variationId = $form_state->getStorage()['selected_variation'];
 
     /** @var \Drupal\Core\Entity\ContentEntityInterface $variation */
