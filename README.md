@@ -1,7 +1,7 @@
 ABOUT
 =====
 
-Supports quote and purchase items for Drupal Commerce.
+Supports quote items for Drupal Commerce.
 
 DEPENDENCIES
 ============

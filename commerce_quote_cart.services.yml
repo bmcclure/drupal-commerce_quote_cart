@@ -1,5 +1,5 @@
 services:
   commerce_mixed_quote_cart_subscriber:
-    class: '\Drupal\commerce_mixed_quote_cart\EventSubscriber\CommerceMixedQuoteCartSubscriber'
+    class: '\Drupal\commerce_quote_cart\EventSubscriber\CommerceQuoteCartSubscriber'
     tags:
       - { name: 'event_subscriber' }

@@ -1,6 +1,6 @@
 <?php
 use Drupal\commerce\PurchasableEntityInterface;
-use Drupal\commerce_mixed_quote_cart\QuoteCartHelper;
+use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Block\BlockPluginInterface;
@@ -11,7 +11,7 @@ use Drupal\Core\Link;
 /**
  * Implements hook_form_alter().
  */
-function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   if (strpos($form_id, 'views_form_commerce_cart_form_') === 0) {
     /** @var \Drupal\views\ViewExecutable $view */
     $view = $form_state->getBuildInfo()['args'][0];
@@ -28,7 +28,7 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
         $form['actions']['convert'] = [
           '#type' => 'submit',
           '#value' => t('Convert to Quote'),
-          '#submit' => ['commerce_mixed_quote_cart_submit_convert'],
+          '#submit' => ['commerce_quote_cart_submit_convert'],
           '#button_type' => 'primary',
           '#weight' => -10,
         ];
@@ -49,7 +49,7 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
   }
 
   if (strpos($form_id, 'commerce_order_item_default_add_to_cart_') === 0) {
-    $variation = commerce_mixed_quote_cart_get_current_variation($form_state->getStorage());
+    $variation = commerce_quote_cart_get_current_variation($form_state->getStorage());
 
     if (empty($variation)) {
       return;
@@ -63,7 +63,7 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
     $form['actions']['quote'] = [
       '#type' => 'submit',
       '#value' => t('Quote'),
-      '#submit' => ['commerce_mixed_quote_cart_submit_quote'],
+      '#submit' => ['commerce_quote_cart_submit_quote'],
       '#button_type' => 'primary',
       '#weight' => 6,
       '#access' => (bool) $availableForQuote
@@ -71,7 +71,7 @@ function commerce_mixed_quote_cart_form_alter(&$form, FormStateInterface $form_s
   }
 }
 
-function commerce_mixed_quote_cart_get_current_variation(array $storage) {
+function commerce_quote_cart_get_current_variation(array $storage) {
   if (isset($storage['selected_variation'])) {
     $variationId = $storage['selected_variation'];
 
@@ -85,7 +85,7 @@ function commerce_mixed_quote_cart_get_current_variation(array $storage) {
   return $product->getDefaultVariation();
 }
 
-function commerce_mixed_quote_cart_get_store(PurchasableEntityInterface $entity) {
+function commerce_quote_cart_get_store(PurchasableEntityInterface $entity) {
   $stores = $entity->getStores();
   if (count($stores) === 1) {
     $store = reset($stores);
@@ -101,7 +101,7 @@ function commerce_mixed_quote_cart_get_store(PurchasableEntityInterface $entity)
   return $store;
 }
 
-function commerce_mixed_quote_cart_submit_convert(array &$form, FormStateInterface $form_state) {
+function commerce_quote_cart_submit_convert(array &$form, FormStateInterface $form_state) {
   /** @var \Drupal\views\ViewExecutable $view */
   $view = $form_state->getBuildInfo()['args'][0];
 
@@ -117,7 +117,7 @@ function commerce_mixed_quote_cart_submit_convert(array &$form, FormStateInterfa
   }
 }
 
-function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface $form_state) {
+function commerce_quote_cart_submit_quote(array &$form, FormStateInterface $form_state) {
   /** @var \Drupal\commerce_cart\Form\AddToCartForm $addToCartForm */
   $addToCartForm = $form_state->getBuildInfo()['callback_object'];
 
@@ -131,19 +131,19 @@ function commerce_mixed_quote_cart_submit_quote(array &$form, FormStateInterface
 /**
  * Implements hook_preprocess_block().
  */
-function commerce_mixed_quote_cart_preprocess_block(&$variables) {
+function commerce_quote_cart_preprocess_block(&$variables) {
   if ($variables['elements']['#id'] == 'product_variations') {
-    $variables['label'] = commerce_mixed_quote_cart_block_label($variables);
+    $variables['label'] = commerce_quote_cart_block_label($variables);
   }
 }
 
-function commerce_mixed_quote_cart_block_label($variables) {
+function commerce_quote_cart_block_label($variables) {
   $label = $variables['label'];
 
   $product = $variables['content']['content']['#commerce_product'];
 
   if ($product instanceof \Drupal\commerce_product\Entity\ProductInterface) {
-    if (commerce_mixed_quote_cart_product_is_purchasable($product)) {
+    if (commerce_quote_cart_product_is_purchasable($product)) {
       $label = 'Add to Cart';
     }
   }
@@ -151,7 +151,7 @@ function commerce_mixed_quote_cart_block_label($variables) {
   return $label;
 }
 
-function commerce_mixed_quote_cart_product_is_purchasable(ProductInterface $product) {
+function commerce_quote_cart_product_is_purchasable(ProductInterface $product) {
   $purchasableField = 'field_available_for_purchase';
   $variations = $product->getVariations();
 
@@ -168,7 +168,7 @@ function commerce_mixed_quote_cart_product_is_purchasable(ProductInterface $prod
   return $purchasable;
 }
 
-function commerce_mixed_quote_cart_preprocess_field(&$variables) {
+function commerce_quote_cart_preprocess_field(&$variables) {
   if ($variables['element']['#field_name'] == 'price') {
     /** @var FieldableEntityInterface $entity */
     $entity = $variables['element']['#object'];
@@ -183,7 +183,7 @@ function commerce_mixed_quote_cart_preprocess_field(&$variables) {
   }
 }
 
-function commerce_mixed_quote_cart_entity_storage_load(array $entities, $entity_type) {
+function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) {
   if ($entity_type == 'commerce_order') {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     foreach ($entities as $order) {

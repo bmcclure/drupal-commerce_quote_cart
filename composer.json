@@ -1,8 +1,8 @@
 {
-  "name": "drupal/commerce_mixed_quote_cart",
+  "name": "drupal/commerce_quote_cart",
   "type": "drupal-module",
-  "description": "Supports quote and purchase items for Drupal Commerce.",
-  "homepage": "https://github.com/TopFloorTech/drupal-commerce_mixed_quote_cart",
+  "description": "Supports quote items for Drupal Commerce.",
+  "homepage": "https://github.com/bmcclure/drupal-commerce_quote_cart",
   "license": "GPL-2.0+",
   "minimum-stability": "dev"
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_mixed_quote_cart;
+namespace Drupal\commerce_quote_cart;
 
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;

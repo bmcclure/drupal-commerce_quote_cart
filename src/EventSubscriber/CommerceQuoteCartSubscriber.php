@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_mixed_quote_cart\EventSubscriber;
+namespace Drupal\commerce_quote_cart\EventSubscriber;
 
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
@@ -15,7 +15,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 
-class CommerceMixedQuoteCartSubscriber implements EventSubscriberInterface {
+class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
 
   var $fieldName = 'field_quote';
 
