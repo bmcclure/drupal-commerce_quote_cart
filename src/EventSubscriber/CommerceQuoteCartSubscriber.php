@@ -34,8 +34,10 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   public function onProductVariationAjaxChange(ProductVariationAjaxChangeEvent $event) {
-    // TODO: Add AJAX event to reload main product variation
-    // (Currently only replaces Add to Cart block info)
+    $response = $event->getResponse();
+    $commands = $response->getCommands();
+
+    // TODO: Add command to reload product gallery JS after replacing image
   }
 
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {

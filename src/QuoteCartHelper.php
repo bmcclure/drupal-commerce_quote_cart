@@ -5,6 +5,7 @@ namespace Drupal\commerce_quote_cart;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_price\Price;
+use Drupal\commerce_shipping\Entity\ShippingMethodInterface;
 
 class QuoteCartHelper {
   public static function hasQuoteCart() {
@@ -106,5 +107,15 @@ class QuoteCartHelper {
     $field->value = TRUE;
 
     $item->save();
+  }
+
+  public static function filterShippingMethods(array $shippingMethods, $quote = FALSE) {
+    $quoteMethodName = 'Quote';
+
+    return array_filter($shippingMethods, function (ShippingMethodInterface $shippingMethod) use ($quote, $quoteMethodName) {
+      return $quote
+        ? ($shippingMethod->getName() === $quoteMethodName)
+        : ($shippingMethod->getName() !== $quoteMethodName);
+    });
   }
 }
