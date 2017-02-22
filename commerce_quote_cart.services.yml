@@ -3,3 +3,7 @@ services:
     class: '\Drupal\commerce_quote_cart\EventSubscriber\CommerceQuoteCartSubscriber'
     tags:
       - { name: 'event_subscriber' }
+  commerce_quote_cart.quote_order_processor:
+    class: Drupal\commerce_quote_cart\QuoteOrderProcessor
+    tags:
+      - { name: commerce_order.order_processor, priority: -100 }

@@ -91,6 +91,12 @@ class QuoteCartHelper {
     }
   }
 
+  public static function isQuoteItem(OrderItemInterface $orderItem) {
+    $fieldName = 'field_quote';
+
+    return ($orderItem->hasField($fieldName) && $orderItem->get($fieldName)->value);
+  }
+
   public static function convertItemToQuote(OrderItemInterface $item) {
     $field = 'field_quote';
 

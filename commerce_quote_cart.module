@@ -36,7 +36,7 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
     }
   }
 
-  if ($form_id == 'multistep_default') {
+  if (strpos($form_id, 'commerce_checkout_flow_') === 0) {
     if (isset($form['actions']['next'])) {
 
       /** @var \Drupal\Core\StringTranslation\TranslatableMarkup $nextValue */
@@ -187,12 +187,8 @@ function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) 
   if ($entity_type == 'commerce_order') {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     foreach ($entities as $order) {
-      $checkoutFlow = $order->get('checkout_flow');
-      if ($order->getTotalPrice()->isZero()) {
-        $checkoutFlow->set(0, ['target_id' => 'quote']);
-      } else {
-        $checkoutFlow->set(0, ['target_id' => 'default']);
-      }
+      $targetId = $order->getTotalPrice()->isZero() ? 'quote' : 'default';
+      $order->get('checkout_flow')->set(0, ['target_id' => $targetId]);
     }
   }
 }
