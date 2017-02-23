@@ -37,14 +37,21 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
   }
 
   if (strpos($form_id, 'commerce_checkout_flow_') === 0) {
-    if (isset($form['actions']['next'])) {
+    $label = QuoteCartHelper::isPurchaseCart() ? 'Order' : 'Quote';
 
+    if (isset($form['actions']['next'])) {
       /** @var \Drupal\Core\StringTranslation\TranslatableMarkup $nextValue */
       $nextValue = $form['actions']['next']['#value'];
 
       if (strtolower($nextValue->getUntranslatedString()) == 'pay and complete purchase') {
-        $form['actions']['next']['#value'] = t('Complete order');
+        $form['actions']['next']['#value'] = t('Complete ' . strtolower($label));
       }
+    }
+
+    if (isset($form['order_summary'])) {
+      $form['summary_title'] = [
+        '#markup' => t("$label summary"),
+      ];
     }
   }
 

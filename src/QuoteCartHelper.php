@@ -35,11 +35,39 @@ class QuoteCartHelper {
     return $hasQuoteCart;
   }
 
-  public static function isMixedCart(OrderInterface $cartOrder) {
+  public static function getCurrentCart() {
+    $cartProvider = \Drupal::service('commerce_cart.cart_provider');
+
+    /** @var \Drupal\commerce_order\Entity\OrderInterface[] $carts */
+    $carts = $cartProvider->getCarts();
+    $carts = array_filter($carts, function ($cart) {
+      /** @var \Drupal\commerce_order\Entity\OrderInterface $cart */
+      // There is a chance the cart may have converted from a draft order, but
+      // is still in session. Such as just completing check out. So we verify
+      // that the cart is still a cart.
+      return $cart->hasItems() && $cart->cart->value;
+    });
+
+    return $carts;
+  }
+
+  public static function isMixedCart(OrderInterface $cartOrder = NULL) {
     return self::isQuoteCart($cartOrder) && self::isPurchaseCart($cartOrder);
   }
 
-  public static function isPurchaseCart(OrderInterface $cartOrder) {
+  public static function isPurchaseCart(OrderInterface $cartOrder = NULL) {
+    if (is_null($cartOrder)) {
+      $purchaseCart = FALSE;
+
+      foreach (self::getCurrentCart() as $cart) {
+        if (self::isPurchaseCart($cart)) {
+          $purchaseCart = TRUE;
+        }
+      }
+
+      return $purchaseCart;
+    }
+
     $isPurchaseCart = FALSE;
 
     $field = 'field_quote';
@@ -55,7 +83,19 @@ class QuoteCartHelper {
     return $isPurchaseCart;
   }
 
-  public static function isQuoteCart(OrderInterface $cartOrder) {
+  public static function isQuoteCart(OrderInterface $cartOrder = NULL) {
+    if (is_null($cartOrder)) {
+      $quoteCart = FALSE;
+
+      foreach (self::getCurrentCart() as $cart) {
+        if (self::isQuoteCart($cart)) {
+          $quoteCart = TRUE;
+        }
+      }
+
+      return $quoteCart;
+    }
+
     $isQuoteCart = FALSE;
 
     $field = 'field_quote';
