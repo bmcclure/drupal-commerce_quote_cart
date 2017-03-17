@@ -4,6 +4,7 @@ namespace Drupal\commerce_quote_cart\EventSubscriber;
 
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
+use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderEvents;
@@ -12,6 +13,10 @@ use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Event\ProductEvents;
 use Drupal\commerce_product\Event\ProductVariationAjaxChangeEvent;
 use Drupal\commerce_product\Event\ProductVariationEvent;
+use Drupal\commerce_quote_cart\QuoteCartHelper;
+use Drupal\commerce_shipping\Event\BeforePackEvent;
+use Drupal\commerce_shipping\Event\CommerceShippingEvents;
+use Drupal\profile\Entity\ProfileInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
@@ -29,16 +34,24 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $events[CartEvents::ORDER_ITEM_COMPARISON_FIELDS][] = ['onOrderItemComparisonFields'];
     $events[OrderEvents::ORDER_ITEM_PRESAVE][] = ['onOrderItemPresave'];
     $events[OrderEvents::ORDER_ITEM_CREATE][] = ['onOrderItemCreate'];
-    $events[ProductEvents::PRODUCT_VARIATION_AJAX_CHANGE][] = ['onProductVariationAjaxChange'];
+    $events[CommerceShippingEvents::BEFORE_PACK][] = ['onBeforePack'];
 
     return $events;
   }
 
-  public function onProductVariationAjaxChange(ProductVariationAjaxChangeEvent $event) {
-    $response = $event->getResponse();
-    $commands = $response->getCommands();
+  public function onBeforePack(BeforePackEvent $event) {
+    // Only remove quote items from purchases, as we need as least one shippable item.
+    if (QuoteCartHelper::isPurchaseCart($event->getOrder())) {
+      $items = $event->getOrderItems();
 
-    // TODO: Add command to reload product gallery JS after replacing image
+      foreach ($items as $id => $orderItem) {
+        if ($orderItem->hasField('field_quote') && $orderItem->get('field_quote')->value) {
+          unset($items[$id]);
+        }
+      }
+
+      $event->setOrderItems($items);
+    }
   }
 
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {
