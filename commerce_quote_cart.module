@@ -37,7 +37,23 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
   }
 
   if (strpos($form_id, 'commerce_checkout_flow_') === 0) {
-    $label = QuoteCartHelper::isPurchaseCart() ? 'Order' : 'Quote';
+    $is_quote = !QuoteCartHelper::isPurchaseCart();
+
+    $label = $is_quote ? 'Quote' : 'Order';
+    $shipping_label = $is_quote ? 'Contact' : 'Shipping';
+
+    if (isset($form['shipping_information'])) {
+      $form['shipping_information']['#title'] = t($shipping_label . ' Information');
+      $form['#attached']['library'][] = 'commerce_quote_cart/shipping-information';
+
+      if (isset($form['shipping_information']['shipments']) && $is_quote) {
+        $form['shipping_information']['shipments']['#attributes']['class'][] = 'js-hide';
+      }
+    }
+
+    if (isset($form['review']) && isset($form['review']['shipping_information'])) {
+      $form['review']['shipping_information']['#title'] = str_replace('Shipping ', "$shipping_label ", $form['review']['shipping_information']['#title']);
+    }
 
     if (isset($form['actions']['next'])) {
       /** @var \Drupal\Core\StringTranslation\TranslatableMarkup $nextValue */
@@ -204,6 +220,5 @@ function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) 
  * Implements hook_commerce_shipping_methods_alter().
  */
 function commerce_quote_cart_commerce_shipping_methods_alter(array &$shipping_methods, \Drupal\commerce_shipping\Entity\ShipmentInterface $shipment) {
-  $quote = !QuoteCartHelper::isPurchaseCart($shipment->getOrder());
-  $shipping_methods = QuoteCartHelper::filterShippingMethods($shipping_methods, $quote);
+  $shipping_methods = QuoteCartHelper::filterShippingMethods($shipping_methods, $shipment);
 }

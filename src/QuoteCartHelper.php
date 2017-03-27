@@ -5,6 +5,7 @@ namespace Drupal\commerce_quote_cart;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_price\Price;
+use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\Entity\ShippingMethodInterface;
 
 class QuoteCartHelper {
@@ -155,8 +156,12 @@ class QuoteCartHelper {
     $item->save();
   }
 
-  public static function filterShippingMethods(array $shippingMethods, $quote = FALSE) {
+  public static function filterShippingMethods(array $shippingMethods, ShipmentInterface $shipment) {
     $quoteMethodName = 'Quote';
+    $quote = !QuoteCartHelper::isPurchaseCart($shipment->getOrder());
+
+    // @todo Remove this line once FedEx is returning rates every single time.
+    return $shippingMethods;
 
     return array_filter($shippingMethods, function (ShippingMethodInterface $shippingMethod) use ($quote, $quoteMethodName) {
       return $quote

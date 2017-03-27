@@ -1,0 +1,6 @@
+shipping-information:
+  version: 1.0.0
+  js:
+    js/shipping_information.js: {}
+  dependencies:
+    - core/drupal.ajax
