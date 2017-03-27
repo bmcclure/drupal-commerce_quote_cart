@@ -2,6 +2,7 @@
 
 namespace Drupal\commerce_quote_cart\Plugin\Block;
 
+use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Block\Annotation\Block;
@@ -67,13 +68,17 @@ class OrderThankYouBlock extends OrderBlockBase {
    * {@inheritdoc}
    */
   public function build() {
-    $type = QuoteCartHelper::isPurchaseCart() ? 'order' : 'quote';
     $config = $this->getConfiguration();
+    $order = \Drupal::routeMatch()->getParameter('commerce_order');
 
-    return [
+    $type = (!$order || QuoteCartHelper::isPurchaseCart($order)) ? 'order' : 'quote';
+
+    $output = [
       '#title' => $config[$type . '_title'],
       '#markup' => $config[$type . '_body'],
       '#cache' => ['max-age' => 0],
     ];
+
+    return $output;
   }
 }
