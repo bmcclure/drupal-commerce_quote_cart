@@ -164,6 +164,16 @@ function commerce_quote_cart_preprocess_block(&$variables) {
   if (in_array($variables['elements']['#id'], ['product_variations', 'product_variations_mobile'])) {
     $variables['label'] = commerce_quote_cart_block_label($variables);
   }
+
+  if ($variables['plugin_id'] == 'page_title_block' && \Drupal::routeMatch()->getRouteName() == 'entity.commerce_order.user_view') {
+    /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
+    $order = \Drupal::routeMatch()->getParameter('commerce_order');
+
+    if ($order) {
+      $title = QuoteCartHelper::isPurchaseCart($order) ? 'Order' : 'Quote';
+      $variables['content']['#title'] = t($title . ' number: @order_number', ['@order_number' => $order->getOrderNumber()]);
+    }
+  }
 }
 
 /**
