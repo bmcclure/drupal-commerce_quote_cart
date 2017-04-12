@@ -166,6 +166,41 @@ function commerce_quote_cart_preprocess_block(&$variables) {
   }
 }
 
+/**
+ * Implements hook_preprocess_commerce_order().
+ */
+function commerce_quote_cart_preprocess_commerce_order(&$variables) {
+  commerce_quote_cart_populate_order_variables($variables);
+}
+
+/**
+ * Implements hook_preprocess_commerce_order_receipt().
+ */
+function commerce_quote_cart_preprocess_commerce_order_receipt(&$variables) {
+  commerce_quote_cart_populate_order_variables($variables);
+}
+
+/**
+ * Implements hook_preprocess_commerce_checkout_completion_message().
+ */
+function commerce_quote_cart_preprocess_commerce_checkout_completion_message(&$variables) {
+  commerce_quote_cart_populate_order_variables($variables);
+}
+
+function commerce_quote_cart_populate_order_variables(&$variables) {
+  if (isset($variables['order_entity'])) {
+    /** @var Drupal\commerce_order\Entity\OrderInterface $order */
+    $order = $variables['order_entity'];
+
+    $variables['order_label'] = \Drupal\commerce_quote_cart\QuoteCartHelper::isPurchaseCart($order) ? t('Order') : t('Quote');
+    $variables['is_quote'] = !\Drupal\commerce_quote_cart\QuoteCartHelper::isPurchaseCart($order);
+
+    if (isset($variables['order']['order_number']) && $variables['is_quote']) {
+      $variables['order']['order_number']['#title'] = t('Quote number');
+    }
+  }
+}
+
 function commerce_quote_cart_block_label($variables) {
   $label = $variables['label'];
 
