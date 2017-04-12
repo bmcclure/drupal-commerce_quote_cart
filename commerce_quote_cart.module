@@ -46,6 +46,12 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       $form['shipping_information']['#title'] = t($shipping_label . ' Information');
       $form['#attached']['library'][] = 'commerce_quote_cart/shipping-information';
 
+      // Non-quote orders should only be able to go to US or CA
+      if (isset($form['shipping_information']['shipping_profile']) && !$is_quote) {
+        //$form['shipping_information']['shipping_profile']['#available_countries'] = ['US', 'CA'];
+      }
+
+      // Hide shipping information for quote orders
       if (isset($form['shipping_information']['shipments']) && $is_quote) {
         $form['shipping_information']['shipments']['#attributes']['class'][] = 'js-hide';
       }
@@ -64,7 +70,7 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       }
     }
 
-    if (isset($form['order_summary'])) {
+    if (isset($form['sidebar'])) {
       $form['summary_title'] = [
         '#markup' => t("$label summary"),
       ];
@@ -155,7 +161,7 @@ function commerce_quote_cart_submit_quote(array &$form, FormStateInterface $form
  * Implements hook_preprocess_block().
  */
 function commerce_quote_cart_preprocess_block(&$variables) {
-  if ($variables['elements']['#id'] == 'product_variations') {
+  if (in_array($variables['elements']['#id'], ['product_variations', 'product_variations_mobile'])) {
     $variables['label'] = commerce_quote_cart_block_label($variables);
   }
 }
