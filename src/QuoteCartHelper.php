@@ -160,9 +160,6 @@ class QuoteCartHelper {
     $quoteMethodName = 'Quote';
     $quote = !QuoteCartHelper::isPurchaseCart($shipment->getOrder());
 
-    // @todo Remove this line once FedEx is returning rates every single time.
-    return $shippingMethods;
-
     return array_filter($shippingMethods, function (ShippingMethodInterface $shippingMethod) use ($quote, $quoteMethodName) {
       return $quote
         ? ($shippingMethod->getName() === $quoteMethodName)
