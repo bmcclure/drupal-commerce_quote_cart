@@ -1,7 +1,7 @@
 <?php
 
 namespace Drupal\commerce_quote_cart\Plugin\Commerce\CheckoutFlow;
-use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\MultistepDefault;
+use Drupal\commerce_customizations\Plugin\Commerce\CheckoutFlow\MultistepOrder;
 
 /**
  * Provides the quote multistep checkout flow.
@@ -11,7 +11,7 @@ use Drupal\commerce_checkout\Plugin\Commerce\CheckoutFlow\MultistepDefault;
  *   label = "Multistep - Quote",
  * )
  */
-class MultistepQuote extends MultistepDefault {
+class MultistepQuote extends MultistepOrder {
 
   /**
    * {@inheritdoc}
