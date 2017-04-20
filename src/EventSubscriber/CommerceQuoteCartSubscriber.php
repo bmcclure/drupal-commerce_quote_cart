@@ -4,6 +4,7 @@ namespace Drupal\commerce_quote_cart\EventSubscriber;
 
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
+use Drupal\commerce_fedex\Event\CommerceFedExEvents;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
 use Drupal\commerce_order\Event\OrderEvent;
@@ -35,23 +36,30 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $events[OrderEvents::ORDER_ITEM_PRESAVE][] = ['onOrderItemPresave'];
     $events[OrderEvents::ORDER_ITEM_CREATE][] = ['onOrderItemCreate'];
     $events[CommerceShippingEvents::BEFORE_PACK][] = ['onBeforePack'];
+    $events[CommerceFedExEvents::BEFORE_PACK][] = ['onBeforePackFedEx'];
 
     return $events;
   }
 
   public function onBeforePack(BeforePackEvent $event) {
-    // Only remove quote items from purchases, as we need as least one shippable item.
-    if (QuoteCartHelper::isPurchaseCart($event->getOrder())) {
-      $items = $event->getOrderItems();
+    $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
+  }
 
+  public function onBeforePackFedEx(\Drupal\commerce_fedex\Event\BeforePackEvent $event) {
+    $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
+  }
+
+  protected function filterQuoteItems(OrderInterface $order, array $items) {
+    // Only remove quote items from purchases, as we need as least one shippable item.
+    if (QuoteCartHelper::isPurchaseCart($order)) {
       foreach ($items as $id => $orderItem) {
         if ($orderItem->hasField('field_quote') && $orderItem->get('field_quote')->value) {
           unset($items[$id]);
         }
       }
-
-      $event->setOrderItems($items);
     }
+
+    return $items;
   }
 
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {
