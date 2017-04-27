@@ -63,10 +63,10 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
 
     if (isset($form['actions']['next'])) {
       /** @var \Drupal\Core\StringTranslation\TranslatableMarkup $nextValue */
-      $nextValue = $form['actions']['next']['#value'];
+      $nextValue = $form['actions']['next']['#default_value'];
 
       if (strtolower($nextValue->getUntranslatedString()) == 'pay and complete purchase') {
-        $form['actions']['next']['#value'] = t('Complete ' . strtolower($label));
+        $form['actions']['next']['#default_value'] = t('Complete ' . strtolower($label));
       }
     }
 
