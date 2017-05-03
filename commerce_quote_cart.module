@@ -261,12 +261,8 @@ function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) 
   if ($entity_type == 'commerce_order') {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */
     foreach ($entities as $order) {
-      $total_price = $order->getTotalPrice();
-
-      if (!is_null($total_price)) {
-        $targetId = $order->getTotalPrice()->isZero() ? 'quote' : 'default';
-        $order->get('checkout_flow')->set(0, ['target_id' => $targetId]);
-      }
+      $targetId = QuoteCartHelper::isPurchaseCart($order) ? 'default' : 'quote';
+      $order->get('checkout_flow')->set(0, ['target_id' => $targetId]);
     }
   }
 }
