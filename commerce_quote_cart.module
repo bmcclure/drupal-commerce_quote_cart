@@ -70,9 +70,13 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       }
     }
 
-    if (isset($form['sidebar'])) {
-      $form['summary_title'] = [
-        '#markup' => t("$label summary"),
+    if (isset($form['sidebar']['order_summary'])) {
+      $form['sidebar']['order_summary']['summary_title'] = [
+        '#type' => 'container',
+        '#weight' => -1,
+        'title' => [
+          '#markup' => t("$label summary"),
+        ]
       ];
     }
   }
