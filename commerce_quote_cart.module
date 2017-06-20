@@ -1,12 +1,10 @@
 <?php
+
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
-use Drupal\commerce_price\Price;
 use Drupal\commerce_product\Entity\ProductInterface;
-use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Link;
 
 /**
  * Implements hook_form_alter().
@@ -70,9 +68,13 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       }
     }
 
-    if (isset($form['sidebar'])) {
-      $form['summary_title'] = [
-        '#markup' => t("$label summary"),
+    if (isset($form['sidebar']['order_summary'])) {
+      $form['sidebar']['order_summary']['summary_title'] = [
+        '#type' => 'container',
+        '#weight' => -1,
+        'title' => [
+          '#markup' => t("$label summary"),
+        ]
       ];
     }
   }
@@ -97,6 +99,10 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       '#weight' => 6,
       '#access' => (bool) $availableForQuote
     ];
+
+    if (isset($form['actions']['submit']['#ajax'])) {
+      $form['actions']['quote']['#ajax'] = $form['actions']['submit']['#ajax'];
+    }
   }
 }
 
