@@ -7,25 +7,20 @@ use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
 use Drupal\commerce_fedex\Event\CommerceFedExEvents;
 use Drupal\commerce_order\Entity\OrderInterface;
-use Drupal\commerce_order\Entity\OrderItemInterface;
-use Drupal\commerce_order\Event\OrderEvent;
 use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\commerce_order\Event\OrderItemEvent;
 use Drupal\commerce_price\Price;
-use Drupal\commerce_product\Event\ProductEvents;
-use Drupal\commerce_product\Event\ProductVariationAjaxChangeEvent;
-use Drupal\commerce_product\Event\ProductVariationEvent;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_shipping\Event\BeforePackEvent;
 use Drupal\commerce_shipping\Event\CommerceShippingEvents;
-use Drupal\profile\Entity\ProfileInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
 
-  var $fieldName = 'field_quote';
+  var $quoteField = 'field_quote';
+  var $purchaseField = 'field_purchase';
 
   /**
    * {@inheritdoc}
@@ -46,15 +41,31 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   public function onCartEntityAdd(CartEntityAddEvent $event) {
-    $this->cleanOrderInfo($event->getCart());
+    $cart = $event->getCart();
+    $this->setOrderType($cart);
+    $this->cleanOrderInfo($cart);
   }
 
   public function onCartOrderItemUpdate(CartOrderItemUpdateEvent $event) {
+    $cart = $event->getCart();
+    $this->setOrderType($cart);
     $this->cleanOrderInfo($event->getCart());
   }
 
   public function onCartOrderItemRemove(CartOrderItemRemoveEvent $event) {
+    $cart = $event->getCart();
+    $this->setOrderType($cart);
     $this->cleanOrderInfo($event->getCart());
+  }
+
+  public function setOrderType(OrderInterface $order) {
+    if ($order->hasField($this->quoteField)) {
+      $order->get($this->quoteField)->value = QuoteCartHelper::isQuoteCart($order);
+    }
+
+    if ($order->hasField($this->purchaseField)) {
+      $order->get($this->purchaseField)->value = QuoteCartHelper::isPurchaseCart($order);
+    }
   }
 
   public function cleanOrderInfo(OrderInterface $cart) {
@@ -90,7 +101,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {
     $fields = $event->getComparisonFields();
 
-    $fields[] = $this->fieldName;
+    $fields[] = $this->quoteField;
 
     $event->setComparisonFields($fields);
   }
@@ -98,12 +109,12 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   public function onOrderItemPresave(OrderItemEvent $event) {
     $orderItem = $event->getOrderItem();
 
-    if ($orderItem->hasField($this->fieldName) && $orderItem->get($this->fieldName)->value) {
+    if ($orderItem->hasField($this->quoteField) && $orderItem->get($this->quoteField)->value) {
       $orderItem->setUnitPrice(new Price("0.00", 'USD'));
     }
   }
 
   public function onOrderItemCreate(OrderItemEvent $event) {
-    $event->getOrderItem()->set($this->fieldName, ['value' => "0"]);
+    $event->getOrderItem()->set($this->quoteField, ['value' => "0"]);
   }
 }

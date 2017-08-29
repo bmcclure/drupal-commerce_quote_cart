@@ -1,5 +1,4 @@
 <?php
-
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_product\Entity\ProductInterface;
