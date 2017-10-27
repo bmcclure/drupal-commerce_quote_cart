@@ -4,9 +4,9 @@ namespace Drupal\commerce_quote_cart;
 
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Entity\OrderItemInterface;
-use Drupal\commerce_price\Price;
 use Drupal\commerce_shipping\Entity\ShipmentInterface;
 use Drupal\commerce_shipping\Entity\ShippingMethodInterface;
+use Drupal\Core\Entity\EntityStorageException;
 
 class QuoteCartHelper {
   public static function hasQuoteCart() {
@@ -111,6 +111,10 @@ class QuoteCartHelper {
     return $isQuoteCart;
   }
 
+  /**
+   * @param OrderInterface $cartOrder
+   * @throws EntityStorageException
+   */
   public static function convertToQuote(OrderInterface $cartOrder) {
     $field = 'field_quote';
     $save = FALSE;
@@ -138,6 +142,10 @@ class QuoteCartHelper {
     return ($orderItem->hasField($fieldName) && $orderItem->get($fieldName)->value);
   }
 
+  /**
+   * @param OrderItemInterface $item
+   * @throws EntityStorageException
+   */
   public static function convertItemToQuote(OrderItemInterface $item) {
     $field = 'field_quote';
 

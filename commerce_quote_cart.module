@@ -1,4 +1,5 @@
 <?php
+
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_product\Entity\ProductInterface;
@@ -44,9 +45,9 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
       $form['#attached']['library'][] = 'commerce_quote_cart/shipping-information';
 
       // Non-quote orders should only be able to go to US or CA
-      if (isset($form['shipping_information']['shipping_profile']) && !$is_quote) {
+      //if (isset($form['shipping_information']['shipping_profile']) && !$is_quote) {
         //$form['shipping_information']['shipping_profile']['#available_countries'] = ['US', 'CA'];
-      }
+      //}
 
       // Hide shipping information for quote orders
       if (isset($form['shipping_information']['shipments']) && $is_quote) {
@@ -105,6 +106,11 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
   }
 }
 
+/**
+ * @param array $storage
+ * @return \Drupal\commerce_product\Entity\ProductVariationInterface|\Drupal\Core\Entity\EntityInterface|null
+ * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+ */
 function commerce_quote_cart_get_current_variation(array $storage) {
   if (isset($storage['selected_variation'])) {
     $variationId = $storage['selected_variation'];
@@ -119,6 +125,11 @@ function commerce_quote_cart_get_current_variation(array $storage) {
   return $product->getDefaultVariation();
 }
 
+/**
+ * @param PurchasableEntityInterface $entity
+ * @return \Drupal\commerce_store\Entity\StoreInterface|mixed
+ * @throws Exception
+ */
 function commerce_quote_cart_get_store(PurchasableEntityInterface $entity) {
   $stores = $entity->getStores();
   if (count($stores) === 1) {
@@ -135,6 +146,11 @@ function commerce_quote_cart_get_store(PurchasableEntityInterface $entity) {
   return $store;
 }
 
+/**
+ * @param array $form
+ * @param FormStateInterface $form_state
+ * @throws \Drupal\Core\Entity\EntityStorageException
+ */
 function commerce_quote_cart_submit_convert(array &$form, FormStateInterface $form_state) {
   /** @var \Drupal\views\ViewExecutable $view */
   $view = $form_state->getBuildInfo()['args'][0];
@@ -262,6 +278,11 @@ function commerce_quote_cart_preprocess_field(&$variables) {
   }
 }
 
+/**
+ * @param array $entities
+ * @param $entity_type
+ * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+ */
 function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) {
   if ($entity_type == 'commerce_order') {
     /** @var \Drupal\commerce_order\Entity\OrderInterface $order */

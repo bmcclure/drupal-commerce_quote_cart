@@ -2,7 +2,6 @@
 
 namespace Drupal\commerce_quote_cart\Plugin\Block;
 
-use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\Core\Annotation\Translation;
 use Drupal\Core\Block\Annotation\Block;
