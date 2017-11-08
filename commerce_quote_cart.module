@@ -40,6 +40,10 @@ function commerce_quote_cart_form_alter(&$form, FormStateInterface $form_state, 
     $label = $is_quote ? 'Quote' : 'Order';
     $shipping_label = $is_quote ? 'Contact' : 'Shipping';
 
+    if ($is_quote && isset($form['totals'])) {
+      unset($form['totals']);
+    }
+
     if (isset($form['shipping_information'])) {
       $form['shipping_information']['#title'] = t($shipping_label . ' Information');
       $form['#attached']['library'][] = 'commerce_quote_cart/shipping-information';
