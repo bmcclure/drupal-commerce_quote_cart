@@ -73,12 +73,17 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       '#submit' => ['commerce_quote_cart_submit_quote'],
       '#button_type' => 'primary',
       '#weight' => 6,
-      '#access' => (bool) $availableForQuote
+      '#access' => (bool) $availableForQuote,
+      '#prefix' => '<span class="CartButton CartButton--quote">',
+      '#suffix' => '</span>',
+      '#attributes' => ['data-twig-suggestion' => 'submit_button'],
     ];
 
     if (isset($form['actions']['submit']['#ajax'])) {
       $form['actions']['quote']['#ajax'] = $form['actions']['submit']['#ajax'];
     }
+
+    $form['#after_build'][] = 'commerce_quote_cart_set_triggering_element';
 
     $event->setForm($form);
   }

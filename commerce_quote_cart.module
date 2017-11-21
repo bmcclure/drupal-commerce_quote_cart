@@ -199,3 +199,16 @@ function commerce_quote_cart_entity_storage_load(array $entities, $entity_type) 
 function commerce_quote_cart_commerce_shipping_methods_alter(array &$shipping_methods, \Drupal\commerce_shipping\Entity\ShipmentInterface $shipment) {
   $shipping_methods = QuoteCartHelper::filterShippingMethods($shipping_methods, $shipment);
 }
+
+function commerce_quote_cart_set_triggering_element(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
+    $input = $form_state->getUserInput();
+
+    foreach (['submit', 'quote'] as $button) {
+        if (isset($input[$button])) {
+            $form_state->setTriggeringElement($form['actions'][$button]);
+            break;
+        }
+    }
+
+    return $form;
+}
