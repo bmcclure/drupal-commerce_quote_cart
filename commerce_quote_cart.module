@@ -164,18 +164,24 @@ function commerce_quote_cart_product_is_purchasable(ProductInterface $product) {
 }
 
 function commerce_quote_cart_preprocess_field(&$variables) {
-  if ($variables['element']['#field_name'] == 'price') {
-    /** @var FieldableEntityInterface $entity */
-    $entity = $variables['element']['#object'];
+    if ($variables['element']['#field_name'] == 'price') {
+        /** @var FieldableEntityInterface $entity */
+        $entity = $variables['element']['#object'];
 
-    $purchasable = 'field_available_for_purchase';
+        $purchasable = 'field_available_for_purchase';
+        $quotable = 'field_available_for_quote';
 
-    if ($entity->hasField($purchasable) && !$entity->get($purchasable)->value) {
-      if (isset($variables['items'][0])) {
-        $variables['items'][0]['content']['#markup'] = '';
-      }
+        if ($entity->hasField($purchasable) && !$entity->get($purchasable)->value) {
+            if (isset($variables['items'][0])) {
+                if ($entity->hasField($quotable) && $entity->get($quotable)->value) {
+                    $variables['items'][0]['content']['#markup'] = t('Quote');
+                } else {
+                    $variables['items'][0]['content']['#markup'] = '';
+                }
+
+            }
+        }
     }
-  }
 }
 
 /**
