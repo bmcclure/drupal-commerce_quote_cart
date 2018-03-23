@@ -13,6 +13,7 @@ use Drupal\commerce_price\Price;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_shipping\Event\BeforePackEvent;
 use Drupal\commerce_shipping\Event\CommerceShippingEvents;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\hook_event_dispatcher\Event\Form\FormAlterEvent;
 use Drupal\hook_event_dispatcher\HookEventDispatcherEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -20,6 +21,7 @@ use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
+  use StringTranslationTrait;
 
   var $quoteField = 'field_quote';
   var $purchaseField = 'field_purchase';
@@ -69,7 +71,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
 
     $form['actions']['quote'] = [
       '#type' => 'submit',
-      '#value' => t('Quote'),
+      '#value' => $this->t('Add to Quote'),
       '#submit' => ['commerce_quote_cart_submit_quote'],
       '#button_type' => 'primary',
       '#weight' => 6,
