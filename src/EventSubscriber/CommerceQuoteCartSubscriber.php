@@ -23,8 +23,8 @@ use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   use StringTranslationTrait;
 
-  var $quoteField = 'field_quote';
-  var $purchaseField = 'field_purchase';
+  private $quoteField = 'field_quote';
+  private $purchaseField = 'field_purchase';
 
   /**
    * {@inheritdoc}
@@ -52,7 +52,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   public function alterAddToCartForm(FormAlterEvent $event) {
-    if (strpos($event->getFormId(), 'commerce_order_item_default_add_to_cart_') !== 0) {
+    if (strpos($event->getFormId(), 'commerce_order_item_add_to_cart_form') !== 0) {
       return;
     }
 
