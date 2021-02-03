@@ -5,7 +5,6 @@ namespace Drupal\commerce_quote_cart\EventSubscriber;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
-use Drupal\commerce_fedex\Event\CommerceFedExEvents;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\commerce_order\Event\OrderItemEvent;
@@ -36,7 +35,6 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $events[OrderEvents::ORDER_ITEM_PRESAVE][] = ['onOrderItemPresave'];
     $events[OrderEvents::ORDER_ITEM_CREATE][] = ['onOrderItemCreate'];
     $events[CommerceShippingEvents::BEFORE_PACK][] = ['onBeforePack'];
-    $events[CommerceFedExEvents::BEFORE_PACK][] = ['onBeforePackFedEx'];
     $events[CartEvents::CART_ENTITY_ADD][] = ['onCartEntityAdd'];
     $events[CartEvents::CART_ORDER_ITEM_UPDATE][] = ['onCartOrderItemUpdate'];
     $events[CartEvents::CART_ORDER_ITEM_REMOVE][] = ['onCartOrderItemRemove'];
@@ -218,10 +216,6 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   public function onBeforePack(BeforePackEvent $event) {
-    $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
-  }
-
-  public function onBeforePackFedEx(\Drupal\commerce_fedex\Event\BeforePackEvent $event) {
     $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
   }
 
