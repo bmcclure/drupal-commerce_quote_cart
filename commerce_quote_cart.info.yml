@@ -6,4 +6,7 @@ core: 8.x
 package: Commerce
 dependencies:
   - commerce_cart
+  - commerce_checkout
+  - commerce_order
   - commerce_product
+  - hook_event_dispatcher

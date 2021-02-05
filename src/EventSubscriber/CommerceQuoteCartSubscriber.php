@@ -13,8 +13,8 @@ use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_shipping\Event\BeforePackEvent;
 use Drupal\commerce_shipping\Event\CommerceShippingEvents;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\hook_event_dispatcher\Event\Form\FormAlterEvent;
-use Drupal\hook_event_dispatcher\HookEventDispatcherEvents;
+use Drupal\core_event_dispatcher\Event\Form\FormAlterEvent;
+use Drupal\hook_event_dispatcher\HookEventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
@@ -38,9 +38,9 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $events[CartEvents::CART_ENTITY_ADD][] = ['onCartEntityAdd'];
     $events[CartEvents::CART_ORDER_ITEM_UPDATE][] = ['onCartOrderItemUpdate'];
     $events[CartEvents::CART_ORDER_ITEM_REMOVE][] = ['onCartOrderItemRemove'];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterCheckoutForm', -10];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterCartForm'];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterAddToCartForm'];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterCheckoutForm', -10];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterCartForm'];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterAddToCartForm'];
 
     return $events;
   }
@@ -124,7 +124,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * @param \Drupal\hook_event_dispatcher\Event\Form\FormAlterEvent $event
+   * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
    */
   public function alterCheckoutForm(FormAlterEvent $event) {
     $form_id = $event->getFormId();
@@ -133,7 +133,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    $form = $event->getForm();
+    $form = &$event->getForm();
     $is_quote = !QuoteCartHelper::isPurchaseCart();
     $label = $is_quote ? 'Quote' : 'Order';
     $shipping_label = $is_quote ? 'Contact' : 'Shipping';
@@ -175,7 +175,6 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       ];
     }
 
-    $event->setForm($form);
   }
 
   public function onCartEntityAdd(CartEntityAddEvent $event) {

@@ -1,9 +1,11 @@
 <?php
 
 use Drupal\commerce\PurchasableEntityInterface;
+use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_product\Entity\ProductInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -240,5 +242,39 @@ function commerce_quote_cart_commerce_google_analytics_item_alter(array &$item, 
 function commerce_quote_cart_ga_push_add_alter(&$push_params, $type = GA_PUSH_TYPE_EVENT, $method_key = NULL, $options = array()) {
   if (empty($push_params['params']['trans']) && empty($push_params['params']['items'])) {
     $push_params['params'] = NULL;
+  }
+}
+
+/**
+ * Implements hook_entity_base_field_info().
+ *
+ * Provides a base field for quote.
+ */
+function commerce_quote_cart_entity_base_field_info(EntityTypeInterface $entity_type) {
+  if ($entity_type->id() === 'commerce_order') {
+    $fields['quote'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Quote'))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => [
+          'display_label' => TRUE,
+        ]
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+    return $fields;
+  }
+  if ($entity_type->id() === 'commerce_order_item') {
+    $fields['quote'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Quote'))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => [
+          'display_label' => TRUE,
+        ]
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+    return $fields;
   }
 }
