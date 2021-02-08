@@ -75,7 +75,7 @@ function commerce_quote_cart_submit_quote(array &$form, FormStateInterface $form
 
   /** @var \Drupal\commerce_order\Entity\OrderItemInterface $order_item */
   $order_item = $addToCartForm->getEntity();
-  $order_item->set('field_quote', ['value' => "1"]);
+  $order_item->set('quote', ['value' => "1"]);
 
   $addToCartForm->submitForm($form, $form_state);
 }
