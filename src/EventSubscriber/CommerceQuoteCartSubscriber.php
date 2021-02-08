@@ -22,8 +22,8 @@ use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   use StringTranslationTrait;
 
-  private $quoteField = 'field_quote';
-  private $purchaseField = 'field_purchase';
+  private $quoteField = 'quote';
+  private $purchaseField = 'purchase';
 
   /**
    * {@inheritdoc}
@@ -62,8 +62,8 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    $availableForQuote = $variation->get('field_available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
-    $availableForPurchase = $variation->get('field_available_for_purchase')->value;
+    $availableForQuote = $variation->get('available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
+    $availableForPurchase = $variation->get('available_for_purchase')->value;
 
     $form['actions']['submit']['#access'] = (bool) $availableForPurchase;
 
@@ -222,7 +222,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     // Only remove quote items from purchases, as we need as least one shippable item.
     if (QuoteCartHelper::isPurchaseCart($order)) {
       foreach ($items as $id => $orderItem) {
-        if ($orderItem->hasField('field_quote') && $orderItem->get('field_quote')->value) {
+        if ($orderItem->hasField('quote') && $orderItem->get('quote')->value) {
           unset($items[$id]);
         }
       }

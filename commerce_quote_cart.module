@@ -149,7 +149,7 @@ function commerce_quote_cart_block_label($variables) {
 }
 
 function commerce_quote_cart_product_is_purchasable(ProductInterface $product) {
-  $purchasableField = 'field_available_for_purchase';
+  $purchasableField = 'available_for_purchase';
   $variations = $product->getVariations();
 
   $purchasable = FALSE;
@@ -170,8 +170,8 @@ function commerce_quote_cart_preprocess_field(&$variables) {
     /** @var FieldableEntityInterface $entity */
     $entity = $variables['element']['#object'];
 
-    $purchasable = 'field_available_for_purchase';
-    $quotable = 'field_available_for_quote';
+    $purchasable = 'available_for_purchase';
+    $quotable = 'available_for_quote';
 
     if ($entity->hasField($purchasable) && !$entity->get($purchasable)->value) {
       if (isset($variables['items'][0])) {
@@ -248,10 +248,35 @@ function commerce_quote_cart_ga_push_add_alter(&$push_params, $type = GA_PUSH_TY
 /**
  * Implements hook_entity_base_field_info().
  *
- * Provides a base field for quote.
+ * Provides base fields for quote, purchase.
  */
 function commerce_quote_cart_entity_base_field_info(EntityTypeInterface $entity_type) {
+  // Add base fields to commerce_order.
   if ($entity_type->id() === 'commerce_order') {
+    $fields['quote'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Quote'))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => [
+          'display_label' => TRUE,
+        ]
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+    $fields['purchase'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Purchase'))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => [
+          'display_label' => TRUE,
+        ]
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+    return $fields;
+  }
+  // Add base field to commerce_order_item.
+  if ($entity_type->id() === 'commerce_order_item') {
     $fields['quote'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Quote'))
       ->setDisplayConfigurable('form', TRUE)
@@ -264,9 +289,20 @@ function commerce_quote_cart_entity_base_field_info(EntityTypeInterface $entity_
       ->setDisplayConfigurable('view', TRUE);
     return $fields;
   }
-  if ($entity_type->id() === 'commerce_order_item') {
-    $fields['quote'] = BaseFieldDefinition::create('boolean')
-      ->setLabel(t('Quote'))
+  // Add base fields to commerce product_variation.
+  if ($entity_type->id() === 'commerce_variation_type') {
+    $fields['available_for_purchase'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Available for Purchase'))
+      ->setDisplayConfigurable('form', TRUE)
+      ->setDisplayOptions('form', [
+        'type' => 'boolean_checkbox',
+        'settings' => [
+          'display_label' => TRUE,
+        ]
+      ])
+      ->setDisplayConfigurable('view', TRUE);
+    $fields['available_for_quote'] = BaseFieldDefinition::create('boolean')
+      ->setLabel(t('Available for Quote'))
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayOptions('form', [
         'type' => 'boolean_checkbox',
