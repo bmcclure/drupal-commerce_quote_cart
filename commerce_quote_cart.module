@@ -289,8 +289,8 @@ function commerce_quote_cart_entity_base_field_info(EntityTypeInterface $entity_
       ->setDisplayConfigurable('view', TRUE);
     return $fields;
   }
-  // Add base fields to commerce product_variation.
-  if ($entity_type->id() === 'commerce_variation_type') {
+  // Add base fields to commerce_product_variation.
+  if ($entity_type->id() === 'commerce_product_variation') {
     $fields['available_for_purchase'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Available for Purchase'))
       ->setDisplayConfigurable('form', TRUE)
