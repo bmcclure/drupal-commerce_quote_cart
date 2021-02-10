@@ -5,7 +5,6 @@ namespace Drupal\commerce_quote_cart\EventSubscriber;
 use Drupal\commerce_cart\Event\CartEntityAddEvent;
 use Drupal\commerce_cart\Event\CartOrderItemRemoveEvent;
 use Drupal\commerce_cart\Event\CartOrderItemUpdateEvent;
-use Drupal\commerce_fedex\Event\CommerceFedExEvents;
 use Drupal\commerce_order\Entity\OrderInterface;
 use Drupal\commerce_order\Event\OrderEvents;
 use Drupal\commerce_order\Event\OrderItemEvent;
@@ -14,8 +13,8 @@ use Drupal\commerce_quote_cart\QuoteCartHelper;
 use Drupal\commerce_shipping\Event\BeforePackEvent;
 use Drupal\commerce_shipping\Event\CommerceShippingEvents;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\hook_event_dispatcher\Event\Form\FormAlterEvent;
-use Drupal\hook_event_dispatcher\HookEventDispatcherEvents;
+use Drupal\core_event_dispatcher\Event\Form\FormAlterEvent;
+use Drupal\hook_event_dispatcher\HookEventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
@@ -23,8 +22,8 @@ use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   use StringTranslationTrait;
 
-  private $quoteField = 'field_quote';
-  private $purchaseField = 'field_purchase';
+  private $quoteField = 'quote';
+  private $purchaseField = 'purchase';
 
   /**
    * {@inheritdoc}
@@ -36,13 +35,12 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $events[OrderEvents::ORDER_ITEM_PRESAVE][] = ['onOrderItemPresave'];
     $events[OrderEvents::ORDER_ITEM_CREATE][] = ['onOrderItemCreate'];
     $events[CommerceShippingEvents::BEFORE_PACK][] = ['onBeforePack'];
-    $events[CommerceFedExEvents::BEFORE_PACK][] = ['onBeforePackFedEx'];
     $events[CartEvents::CART_ENTITY_ADD][] = ['onCartEntityAdd'];
     $events[CartEvents::CART_ORDER_ITEM_UPDATE][] = ['onCartOrderItemUpdate'];
     $events[CartEvents::CART_ORDER_ITEM_REMOVE][] = ['onCartOrderItemRemove'];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterCheckoutForm', -10];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterCartForm'];
-    $events[HookEventDispatcherEvents::FORM_ALTER][] = ['alterAddToCartForm'];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterCheckoutForm', -10];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterCartForm'];
+    $events[HookEventDispatcherInterface::FORM_ALTER][] = ['alterAddToCartForm'];
 
     return $events;
   }
@@ -64,8 +62,8 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    $availableForQuote = $variation->get('field_available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
-    $availableForPurchase = $variation->get('field_available_for_purchase')->value;
+    $availableForQuote = $variation->get('available_for_quote')->value || QuoteCartHelper::hasQuoteCart();
+    $availableForPurchase = $variation->get('available_for_purchase')->value;
 
     $form['actions']['submit']['#access'] = (bool) $availableForPurchase;
 
@@ -126,7 +124,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * @param \Drupal\hook_event_dispatcher\Event\Form\FormAlterEvent $event
+   * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
    */
   public function alterCheckoutForm(FormAlterEvent $event) {
     $form_id = $event->getFormId();
@@ -135,7 +133,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       return;
     }
 
-    $form = $event->getForm();
+    $form = &$event->getForm();
     $is_quote = !QuoteCartHelper::isPurchaseCart();
     $label = $is_quote ? 'Quote' : 'Order';
     $shipping_label = $is_quote ? 'Contact' : 'Shipping';
@@ -177,7 +175,6 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       ];
     }
 
-    $event->setForm($form);
   }
 
   public function onCartEntityAdd(CartEntityAddEvent $event) {
@@ -221,15 +218,11 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
   }
 
-  public function onBeforePackFedEx(\Drupal\commerce_fedex\Event\BeforePackEvent $event) {
-    $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
-  }
-
   protected function filterQuoteItems(OrderInterface $order, array $items) {
     // Only remove quote items from purchases, as we need as least one shippable item.
     if (QuoteCartHelper::isPurchaseCart($order)) {
       foreach ($items as $id => $orderItem) {
-        if ($orderItem->hasField('field_quote') && $orderItem->get('field_quote')->value) {
+        if ($orderItem->hasField('quote') && $orderItem->get('quote')->value) {
           unset($items[$id]);
         }
       }

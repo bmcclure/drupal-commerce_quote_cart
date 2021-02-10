@@ -71,7 +71,7 @@ class QuoteCartHelper {
 
     $isPurchaseCart = FALSE;
 
-    $field = 'field_quote';
+    $field = 'quote';
 
     /** @var OrderItemInterface $item */
     foreach ($cartOrder->getItems() as $item) {
@@ -99,7 +99,7 @@ class QuoteCartHelper {
 
     $isQuoteCart = FALSE;
 
-    $field = 'field_quote';
+    $field = 'quote';
 
     foreach ($cartOrder->getItems() as $item) {
       if ($item->hasField($field) && $item->get($field)->value) {
@@ -116,7 +116,7 @@ class QuoteCartHelper {
    * @throws EntityStorageException
    */
   public static function convertToQuote(OrderInterface $cartOrder) {
-    $field = 'field_quote';
+    $field = 'quote';
     $save = FALSE;
 
     foreach ($cartOrder->getItems() as $item) {
@@ -137,7 +137,7 @@ class QuoteCartHelper {
   }
 
   public static function isQuoteItem(OrderItemInterface $orderItem) {
-    $fieldName = 'field_quote';
+    $fieldName = 'quote';
 
     return ($orderItem->hasField($fieldName) && $orderItem->get($fieldName)->value);
   }
@@ -147,7 +147,7 @@ class QuoteCartHelper {
    * @throws EntityStorageException
    */
   public static function convertItemToQuote(OrderItemInterface $item) {
-    $field = 'field_quote';
+    $field = 'quote';
 
     if (!$item->hasField($field)) {
       return;
