@@ -84,7 +84,7 @@ function commerce_quote_cart_submit_quote(array &$form, FormStateInterface $form
  * Implements hook_preprocess_block().
  */
 function commerce_quote_cart_preprocess_block(&$variables) {
-  if (in_array($variables['elements']['#id'], ['product_variations', 'product_variations_mobile'])) {
+  if (isset($variables['elements']['#id']) && in_array($variables['elements']['#id'], ['product_variations', 'product_variations_mobile'])) {
     $variables['label'] = commerce_quote_cart_block_label($variables);
   }
 
