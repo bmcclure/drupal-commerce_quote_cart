@@ -19,10 +19,22 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\commerce_cart\Event\CartEvents;
 use Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent;
 
+/**
+ * Class CommerceQuoteCartSubscriber.
+ *
+ * @package Drupal\commerce_quote_cart\EventSubscriber
+ */
 class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   use StringTranslationTrait;
 
+  /**
+   * @var string
+   */
   private $quoteField = 'quote';
+
+  /**
+   * @var string
+   */
   private $purchaseField = 'purchase';
 
   /**
@@ -46,7 +58,8 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
   }
 
   /**
-   * @param FormAlterEvent $event
+   * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
+   *   The form alter event.
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    */
   public function alterAddToCartForm(FormAlterEvent $event) {
@@ -85,9 +98,13 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
 
     $form['#after_build'][] = 'commerce_quote_cart_set_triggering_element';
 
-    $event->setForm($form);
+    // $event->setForm($form);
   }
 
+  /**
+   * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
+   *   The form alter event.
+   */
   public function alterCartForm(FormAlterEvent $event) {
     $form_id = $event->getFormId();
 
@@ -120,11 +137,12 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       }
     }
 
-    $event->setForm($form);
+    // $event->setForm($form);
   }
 
   /**
    * @param \Drupal\core_event_dispatcher\Event\Form\FormAlterEvent $event
+   *   The form alter event.
    */
   public function alterCheckoutForm(FormAlterEvent $event) {
     $form_id = $event->getFormId();
@@ -143,10 +161,10 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     }
 
     if (isset($form['shipping_information'])) {
-      $form['shipping_information']['#title'] = t($shipping_label . ' Information');
+      $form['shipping_information']['#title'] = t('@shipping_label Information', ['@shipping_label' => $shipping_label]);
       $form['#attached']['library'][] = 'commerce_quote_cart/shipping-information';
 
-      // Hide shipping information for quote orders
+      // Hide shipping information for quote orders.
       if (isset($form['shipping_information']['shipments']) && $is_quote) {
         $form['shipping_information']['shipments']['#attributes']['class'][] = 'js-hide';
       }
@@ -161,7 +179,7 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
       $nextValue = $form['actions']['next']['#value'];
 
       if (strtolower($nextValue->getUntranslatedString()) == 'pay and complete purchase') {
-        $form['actions']['next']['#value'] = t('Complete ' . strtolower($label));
+        $form['actions']['next']['#value'] = t('Complete @label', ['@label' => strtolower($label)]);
       }
     }
 
@@ -170,31 +188,47 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
         '#type' => 'container',
         '#weight' => -1,
         'title' => [
-          '#markup' => t("$label summary"),
-        ]
+          '#markup' => t("@label summary", ['@label' => $label]),
+        ],
       ];
     }
 
   }
 
+  /**
+   * @param \Drupal\commerce_cart\Event\CartEntityAddEvent $event
+   *   The cart entity add event.
+   */
   public function onCartEntityAdd(CartEntityAddEvent $event) {
     $cart = $event->getCart();
     $this->setOrderType($cart);
     $this->cleanOrderInfo($cart);
   }
 
+  /**
+   * @param \Drupal\commerce_cart\Event\CartOrderItemUpdateEvent $event
+   *   The cart order item update event.
+   */
   public function onCartOrderItemUpdate(CartOrderItemUpdateEvent $event) {
     $cart = $event->getCart();
     $this->setOrderType($cart);
     $this->cleanOrderInfo($event->getCart());
   }
 
+  /**
+   * @param \Drupal\commerce_cart\Event\CartOrderItemRemoveEvent $event
+   *   The cart order item remove event.
+   */
   public function onCartOrderItemRemove(CartOrderItemRemoveEvent $event) {
     $cart = $event->getCart();
     $this->setOrderType($cart);
     $this->cleanOrderInfo($event->getCart());
   }
 
+  /**
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order interface.
+   */
   public function setOrderType(OrderInterface $order) {
     if ($order->hasField($this->quoteField)) {
       $order->get($this->quoteField)->value = QuoteCartHelper::isQuoteCart($order);
@@ -205,6 +239,10 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     }
   }
 
+  /**
+   * @param \Drupal\commerce_order\Entity\OrderInterface $cart
+   *   The order interface.
+   */
   public function cleanOrderInfo(OrderInterface $cart) {
     // Don't do this if it's an order.
     if (QuoteCartHelper::isPurchaseCart($cart) || is_null($cart->getTotalPrice()) || $cart->getTotalPrice()->isZero()) {
@@ -214,12 +252,26 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $cart->clearAdjustments();
   }
 
+  /**
+   * @param \Drupal\commerce_shipping\Event\BeforePackEvent $event
+   *  The before pack event.
+   */
   public function onBeforePack(BeforePackEvent $event) {
     $event->setOrderItems($this->filterQuoteItems($event->getOrder(), $event->getOrderItems()));
   }
 
+  /**
+   * @param \Drupal\commerce_order\Entity\OrderInterface $order
+   *   The order.
+   * @param array $items
+   *   Array of quote order items.
+   *
+   * @return array
+   * $items
+   */
   protected function filterQuoteItems(OrderInterface $order, array $items) {
-    // Only remove quote items from purchases, as we need as least one shippable item.
+    // Only remove quote items from purchases, as we need at least one shippable
+    // item.
     if (QuoteCartHelper::isPurchaseCart($order)) {
       foreach ($items as $id => $orderItem) {
         if ($orderItem->hasField('quote') && $orderItem->get('quote')->value) {
@@ -231,6 +283,10 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     return $items;
   }
 
+  /**
+   * @param \Drupal\commerce_cart\Event\OrderItemComparisonFieldsEvent $event
+   *  The order item comparison fields event.
+   */
   public function onOrderItemComparisonFields(OrderItemComparisonFieldsEvent $event) {
     $fields = $event->getComparisonFields();
 
@@ -239,6 +295,10 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     $event->setComparisonFields($fields);
   }
 
+  /**
+   * @param \Drupal\commerce_order\Event\OrderItemEvent $event
+   *   The order item event.
+   */
   public function onOrderItemPresave(OrderItemEvent $event) {
     $orderItem = $event->getOrderItem();
 
@@ -247,7 +307,12 @@ class CommerceQuoteCartSubscriber implements EventSubscriberInterface {
     }
   }
 
+  /**
+   * @param \Drupal\commerce_order\Event\OrderItemEvent $event
+   *   The order item event.
+   */
   public function onOrderItemCreate(OrderItemEvent $event) {
     $event->getOrderItem()->set($this->quoteField, ['value' => "0"]);
   }
+
 }

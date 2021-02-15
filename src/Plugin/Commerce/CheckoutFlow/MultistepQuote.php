@@ -45,6 +45,10 @@ class MultistepQuote extends MultistepDefault {
     throw new NeedsRedirectException($url->toString());
   }
 
+  /**
+   * @param array $form
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
 
@@ -58,6 +62,11 @@ class MultistepQuote extends MultistepDefault {
     }
   }
 
+  /**
+   * @param $step_id
+   *
+   * @return array|\string[][]
+   */
   protected function getUrlOptions($step_id) {
     $options = [];
     if ($step_id == 'complete') {
