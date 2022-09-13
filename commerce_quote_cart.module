@@ -83,7 +83,12 @@ function commerce_quote_cart_submit_quote(array &$form, FormStateInterface $form
  */
 function commerce_quote_cart_preprocess_block(&$variables) {
   if (in_array($variables['elements']['#id'], ['product_variations', 'product_variations_mobile'])) {
-    $variables['label'] = commerce_quote_cart_block_label($variables);
+      $config = \Drupal::config('block.block.' . $variables['elements']['#id']);
+      if ($config->get('label_display') == 'visible') {
+          $variables['label'] = commerce_quote_cart_block_label($variables);
+      } else {
+          $variables['label'] = '';
+      }
   }
 
   if ($variables['plugin_id'] === 'page_title_block' && \Drupal::routeMatch()->getRouteName() === 'entity.commerce_order.user_view') {
